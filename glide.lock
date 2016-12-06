@@ -1,0 +1,6 @@
+hash: 66b7212a93c9d1b4f7b8061b8795e97fcb8ec264cc03e6d94bf6b5eaaaf706c7
+updated: 2016-12-05T18:37:14.92659843+01:00
+imports:
+- name: github.com/shirou/gopsutil
+  version: 061b699a971e0f74834f69ef8b78643f48980d10
+testImports: []

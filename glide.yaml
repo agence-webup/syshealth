@@ -1,0 +1,4 @@
+package: webup/syshealth
+import:
+- package: github.com/shirou/gopsutil
+  version: "2.16.11"
