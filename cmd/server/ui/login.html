@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login on Helium</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://agence-webup.github.io/helium/css/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+</head>
+
+<body class="login">
+    <div class="login-box" data-js="vue-root">
+        <form @submit.prevent.stop="submit">
+            <div class="f-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" v-model="username">
+            </div>
+            <div class="f-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" v-model="password">
+            </div>
+            <div class="mt3">
+                <button type="submit" class="btn btn--primary login-box__btn">Login</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.15/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+    <script>
+        var app = new Vue({
+            el: '[data-js="vue-root"]',
+            data: {
+                username: null,
+                password: null
+            },
+            methods: {
+                submit () {
+                    console.log(this.username)
+                    
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
