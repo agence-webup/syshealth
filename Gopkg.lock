@@ -92,7 +92,7 @@
 
 [[projects]]
   name = "github.com/rakyll/statik"
-  packages = ["."]
+  packages = ["fs"]
   revision = "fd36b3595eb2ec8da4b8153b107f7ea08504899d"
   version = "v0.1.1"
 
@@ -143,6 +143,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "011bf9470b361ea8c0730d3aea917b97fb7cd5a1079cf8afe69ce57e0cf82f5c"
+  inputs-digest = "a214724e3738b8656f90aed3a4ae0da55b33b715c2a41762f3d19f2c927b9f65"
   solver-name = "gps-cdcl"
   solver-version = 1

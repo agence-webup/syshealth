@@ -18,9 +18,22 @@ func main() {
 	app := cli.App("syshealth-agent", "Syshealth agent gathering server metrics")
 
 	app.Version("v version", "syshealth-agent v1.0 (build 1)")
-	app.Spec = "[--polling-rate]"
+
+	app.Spec = "--jwt --server-url [--polling-rate]"
 
 	var (
+		jwt = app.String(cli.StringOpt{
+			Name:   "jwt",
+			Desc:   "JWT token given by the server after server registration",
+			Value:  "",
+			EnvVar: "SYSHEALTH_AGENT_JWT",
+		})
+		serverURL = app.String(cli.StringOpt{
+			Name:   "server-url",
+			Desc:   "Server URL",
+			Value:  "https://syshealth.io",
+			EnvVar: "SYSHEALTH_AGENT_SERVER_URL",
+		})
 		pollingRate = app.IntOpt("polling-rate", 5, "Polling rate for gathering metrics (in seconds)")
 	)
 
@@ -37,8 +50,7 @@ func main() {
 			for {
 				select {
 				case <-ticker.C:
-					fmt.Println("fetch metrics...")
-					err := http.SendData()
+					err := http.SendData(*serverURL, *jwt)
 					if err != nil {
 						log.Println("error sending data:", err)
 					}
@@ -49,7 +61,7 @@ func main() {
 			}
 		}()
 
-		fmt.Println("awaiting signal")
+		fmt.Println("ready.")
 		<-done
 		fmt.Println("")
 		fmt.Println("exiting")

@@ -3,10 +3,8 @@ package http
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
-	"os"
 	"webup/syshealth"
 	"webup/syshealth/metrics"
 
@@ -15,7 +13,7 @@ import (
 
 // SendData is responsible to fetch server metrics and execute
 // a HTTP request to send collected data
-func SendData() error {
+func SendData(serverURL string, jwt string) error {
 
 	data := syshealth.Data{}
 
@@ -50,11 +48,8 @@ func SendData() error {
 	b := new(bytes.Buffer)
 	json.NewEncoder(b).Encode(jsonData)
 
-	// jwt
-	jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjMGY4MjJlYmQxOGY0MWI3MTIyMzQ3YmU0OWZhYjdmMDk2ODg4MDk4IiwiaXNzIjoic3lzaGVhbHRoLXNlcnZlciJ9.LjiHbdIL7LYx-0BMOdf1qItaxErHZHPHz5rrsrotRXE"
-
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", "http://localhost:1323/api/metrics", b)
+	req, err := http.NewRequest("POST", serverURL+"/api/metrics", b)
 	req.Header.Add("Authorization", "Bearer "+jwt)
 	req.Header.Add("Content-Type", "application/json; charset=utf-8")
 	resp, err := client.Do(req)
@@ -63,9 +58,10 @@ func SendData() error {
 	}
 	defer resp.Body.Close()
 
-	fmt.Printf("response (%d) :\n", resp.StatusCode)
-	io.Copy(os.Stdout, resp.Body)
-	fmt.Println("")
+	if resp.StatusCode >= 400 {
+		b, _ := ioutil.ReadAll(resp.Body)
+		return errors.Wrap(errors.New(string(b)), "API responded with error")
+	}
 
 	return nil
 }
