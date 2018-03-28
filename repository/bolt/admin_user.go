@@ -97,6 +97,32 @@ func (repo *adminUserRepository) Login(username string, password string) (bool, 
 	return hash.Check(password, user.HashedPassword), nil
 }
 
+func (repo *adminUserRepository) GetUsers() ([]string, error) {
+
+	db, err := GetConnection()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to open bolt db")
+	}
+
+	users := []string{}
+
+	err = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bucketAdminUsers)
+		if b == nil {
+			return nil
+		}
+
+		err := b.ForEach(func(k, v []byte) error {
+			users = append(users, string(k))
+			return nil
+		})
+
+		return err
+	})
+
+	return users, err
+}
+
 func (repo *adminUserRepository) Create(username string, password string) error {
 
 	db, err := GetConnection()
@@ -127,6 +153,25 @@ func (repo *adminUserRepository) Create(username string, password string) error 
 		}
 
 		return b.Put([]byte(username), buf)
+	})
+
+	return err
+}
+
+func (repo *adminUserRepository) Delete(username string) error {
+
+	db, err := GetConnection()
+	if err != nil {
+		return errors.Wrap(err, "unable to open bolt db")
+	}
+
+	err = db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bucketAdminUsers)
+		if b == nil {
+			return nil
+		}
+
+		return b.Delete([]byte(username))
 	})
 
 	return err

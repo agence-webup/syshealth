@@ -91,6 +91,12 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/rakyll/statik"
+  packages = ["."]
+  revision = "fd36b3595eb2ec8da4b8153b107f7ea08504899d"
+  version = "v0.1.1"
+
+[[projects]]
   name = "github.com/shirou/gopsutil"
   packages = [
     "cpu",
@@ -121,8 +127,7 @@
     "acme",
     "acme/autocert",
     "bcrypt",
-    "blowfish",
-    "ssh/terminal"
+    "blowfish"
   ]
   revision = "b4956d363a8b14623cc81db401707679605930a3"
 
@@ -138,6 +143,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "50ad8532cdacda6e7375bd9890e2d0c5ce7a29d66c24a4e7b5f6dd446cc6d28d"
+  inputs-digest = "011bf9470b361ea8c0730d3aea917b97fb7cd5a1079cf8afe69ce57e0cf82f5c"
   solver-name = "gps-cdcl"
   solver-version = 1

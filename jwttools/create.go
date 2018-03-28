@@ -15,7 +15,7 @@ var seededRand *rand.Rand = rand.New(
 
 // GetToken returns a JWT token based on server data and a unique ID
 // the ID is stored with server and allows to revoke the token
-func GetToken(server syshealth.Server) (string, string, error) {
+func GetToken(server syshealth.Server, jwtSecret string) (string, string, error) {
 	// generate the ID
 	id := fmt.Sprintf("%d%s%s", generateID(), server.Name, server.IP)
 	h := sha1.New()
@@ -29,7 +29,7 @@ func GetToken(server syshealth.Server) (string, string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err := token.SignedString([]byte("truite"))
+	signedToken, err := token.SignedString([]byte(jwtSecret))
 
 	return signedToken, hashedID, err
 }

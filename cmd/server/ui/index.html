@@ -66,173 +66,193 @@
             </svg>
         </div>
         <div class="header__infos">
-            <a href="#">Go to website</a>
+            <!-- <a href="#">Go to website</a>
             <a href="#">Get some help</a>
-            <span>Richard | <a href="#">Logout</a></span>
+            <span>Richard | <a href="#">Logout</a></span> -->
         </div>
     </header>
 
     <div class="layout" data-js="vue-root">
-        <nav class="navigation" v-if="!needsLogin">
+        <nav class="navigation">
             <a href="#" :class="{ 'is-active': route.startsWith('dashboard')}" @click="selectRoute('dashboard')"><i class="fa fa-dashboard icon"></i> Dashboard</a>
             <a href="#" :class="{ 'is-active': route.startsWith('servers')}" @click="selectRoute('servers.list')"><i class="fa fa-server icon"></i> Servers</a>
+            <a href="#" :class="{ 'is-active': route.startsWith('users')}" @click="selectRoute('users.list')"><i class="fa fa-users icon"></i> Users</a>
         </nav>
 
         <main class="content">
 
-            <div class="mt4 center" v-if="needsLogin">
-                <div class="w50 center txtcenter login-box">
-                    <form action="" method="post">
-            
-                        <div class="f-group">
-                            <label for="username">Username </label>
-                            <input type="text" id="username" name="username">
-                        </div>
-            
-                        <div class="f-group">
-                            <label for="password">Password </label>
-                            <input type="password" id="password" name="password">
-                        </div>
-            
-                        <div class="mt3">
-                            <button type="submit" class="btn btn--primary login-box__btn">Login</button>
-                        </div>
-                    </form>
-                </div>
+            <div v-if="route.startsWith('dashboard')">
+                <h1>Dashboard</h1>
+
+                <article class="box">
+                    <div class="box__content box__content--noPadding">
+                        <table class="txtcenter table__txtsmall">
+                            <thead>
+                                <tr>
+                                    <td class="w5"></td>
+                                    <td>Server</td>
+                                    <td>Processor</td>
+                                    <td>Memory</td>
+                                    <td>Disk</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in metrics">
+                                    <td><span class="tag" :class="{ 'tag--green': item.data, 'tag--red': !item.data }"></span></td>
+                                    <td class="bold">
+                                        <v-popover offset="4" trigger="hover">
+                                            <span class="tooltip-target">{{item.server.name}}</span>
+                                            <template slot="popover">
+                                            <div class="pl4 pr4">
+                                                    {{item.server.ip}}
+                                            </div>
+                                            </template>
+                                        </v-popover>
+                                    </td>
+                                    <td>
+                                        <v-popover offset="4" trigger="hover" v-if="item.data">
+                                            <span class="tooltip-target">{{formatPercent(item.data['cpu.usage'])}}</span>
+                                            <template slot="popover">
+                                                <table class="table__noborder">
+                                                    <tr>
+                                                        <td class="txtright bold">Load 1</td>
+                                                        <td>{{item.data['cpu.load_1']}}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="txtright bold">Load 5</td>
+                                                        <td>{{item.data['cpu.load_5']}}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="txtright bold">Load 15</td>
+                                                        <td>{{item.data['cpu.load_15']}}</td>
+                                                    </tr>
+                                                </table>
+                                            </template>
+                                        </v-popover>
+                                    </td>
+                                    <td>
+                                        <span v-if="item.data">{{formatPercent(item.data['memory.used_percent'])}}</span>
+                                    </td>
+                                    <td>
+                                        <v-popover offset="4" trigger="hover" v-if="item.data">
+                                            <span class="tooltip-target">{{formatPercent(item.data['disk.usage'][item.server.default_partition]['percent'])}}</span>
+                                            <template slot="popover">
+                                                <table class="table__noborder">
+                                                    <tr v-for="(info, disk) in item.data['disk.usage']">
+                                                        <td class="txtright bold">{{disk}}</td>
+                                                        <td>{{info['free'].toFixed(0)}}GB / {{info['total'].toFixed(0)}}GB ({{formatPercent(info['percent'])}})</td>
+                                                    </tr>
+                                                </table>
+                                            </template>
+                                        </v-popover>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
             </div>
 
-            <template v-else>
-                <div v-if="route.startsWith('dashboard')">
-                    <h1>Dashboard</h1>
+            <div v-if="route.startsWith('servers')">
+                <h1>Servers</h1>
 
+                <template v-if="route.startsWith('servers.form.confirmation')">
                     <article class="box">
-                        <div class="box__content box__content--noPadding">
-                            <table class="txtcenter table__txtsmall">
-                                <thead>
-                                    <tr>
-                                        <td class="w5"></td>
-                                        <td>Server</td>
-                                        <td>Processor</td>
-                                        <td>Memory</td>
-                                        <td>Disk</td>
-                                    </tr>
-                                </thead>
+                        <header class="box__header">
+                            Auth token for the new server:
+                        </header>
+                        <div class="box__content">
+                            <input class="jwt-token__value w70" type="text" :value="ui.servers.form.jwt" readonly @click="copyJwt"> (click on input to copy)
+                            <div class="alert alert--error">
+                                Warning! You must keep this token at secure place. It will not be stored and cannot be retrieved. You could only revoke this
+                                token after leaving this page.
+                            </div>
+                        </div>
+                    </article>
+                </template>
+
+                <template v-if="route.startsWith('servers.form.create')">
+                    <div>
+                        <form action="" @submit.prevent.stop="registerSubmit">
+                            <div class="f-group">
+                                <label for="name">Server name <i class="f-required">*</i></label>
+                                <input type="text" id="name" v-model="ui.servers.form.name">
+                            </div>
+
+                            <div class="f-group">
+                                <label for="ip">IP <i class="f-required">*</i></label>
+                                <input type="text" id="ip" v-model="ui.servers.form.ip">
+                            </div>
+
+                            <button type="submit">Submit</button>
+                        </form>
+                    </div>
+                </template>
+
+                <template v-if="route.startsWith('servers.list')">
+                    <div>
+                        <button class="btn btn--primary" @click="selectRoute('servers.form.create')">Register new server</button>
+
+                        <div class="mt2">
+                            <table>
                                 <tbody>
-                                    <tr v-for="item in metrics">
-                                        <td><span class="tag tag--green"></span></td>
-                                        <td class="bold">
-                                            <v-popover offset="4" trigger="hover">
-                                                <span class="tooltip-target">{{item.server.name}}</span>
-                                                <template slot="popover">
-                                                <div class="pl4 pr4">
-                                                        {{item.server.ip}}
-                                                </div>
-                                                </template>
-                                            </v-popover>
+                                    <tr v-for="server in servers">
+                                        <td>
+                                            {{ server.name }} ({{ server.ip }})
                                         </td>
                                         <td>
-                                            <v-popover offset="4" trigger="hover">
-                                                <span class="tooltip-target">{{formatPercent(item.data['cpu.usage'])}}</span>
-                                                <template slot="popover">
-                                                    <table class="table__noborder">
-                                                        <tr>
-                                                            <td class="txtright bold">Load 1</td>
-                                                            <td>{{item.data['cpu.load_1']}}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="txtright bold">Load 5</td>
-                                                            <td>{{item.data['cpu.load_5']}}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="txtright bold">Load 15</td>
-                                                            <td>{{item.data['cpu.load_15']}}</td>
-                                                        </tr>
-                                                    </table>
-                                                </template>
-                                            </v-popover>
-                                        </td>
-                                        <td>
-                                            {{formatPercent(item.data['memory.used_percent'])}}
-                                        </td>
-                                        <td>
-                                            <v-popover offset="4" trigger="hover">
-                                                <span class="tooltip-target">{{formatPercent(item.data['disk.usage'][item.server.default_partition]['percent'])}}</span>
-                                                <template slot="popover">
-                                                    <table class="table__noborder">
-                                                        <tr v-for="(info, disk) in item.data['disk.usage']">
-                                                            <td class="txtright bold">{{disk}}</td>
-                                                            <td>{{info['free'].toFixed(0)}}GB / {{info['total'].toFixed(0)}}GB ({{formatPercent(info['percent'])}})</td>
-                                                        </tr>
-                                                    </table>
-                                                </template>
-                                            </v-popover>
+                                            <a href="" @click.prevent.stop="revokeServer(server)">revoke</a>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                    </article>
-                </div>
+                    </div>
+                </template>
+            </div>
 
-                <div v-if="route.startsWith('servers')">
-                    <h1>Servers</h1>
+            <div v-if="route.startsWith('users')">
+                <h1>Users</h1>
 
-                    <template v-if="route.startsWith('servers.form.confirmation')">
-                        <article class="box">
-                            <header class="box__header">
-                                Auth token for the new server:
-                            </header>
-                            <div class="box__content">
-                                <input class="jwt-token__value w70" type="text" :value="ui.servers.form.jwt" readonly @click="copyJwt"> (click on input to copy)
-                                <div class="alert alert--error">
-                                    Warning! You must keep this token at secure place. It will not be stored and cannot be retrieved. You could only revoke this
-                                    token after leaving this page.
-                                </div>
+                <template v-if="route.startsWith('users.create')">
+                    <div>
+                        <form action="" @submit.prevent.stop="createUser">
+                            <div class="f-group">
+                                <label for="username">Username <i class="f-required">*</i></label>
+                                <input type="text" id="username" v-model="ui.users.form.username">
                             </div>
-                        </article>
-                    </template>
 
-                    <template v-if="route.startsWith('servers.form.create')">
-                        <div>
-                            <form action="" @submit.prevent.stop="registerSubmit">
-                                <div class="f-group">
-                                    <label for="name">Server name <i class="f-required">*</i></label>
-                                    <input type="text" id="name" v-model="ui.servers.form.name">
-                                </div>
-
-                                <div class="f-group">
-                                    <label for="ip">IP <i class="f-required">*</i></label>
-                                    <input type="text" id="ip" v-model="ui.servers.form.ip">
-                                </div>
-
-                                <button type="submit">Submit</button>
-                            </form>
-                        </div>
-                    </template>
-
-                    <template v-if="route.startsWith('servers.list')">
-                        <div>
-                            <button class="btn btn--primary" @click="showRegisterForm">Register new server</button>
-
-                            <div class="mt2">
-                                <table>
-                                    <tbody>
-                                        <tr v-for="server in servers">
-                                            <td>
-                                                {{ server.name }} ({{ server.ip }})
-                                            </td>
-                                            <td>
-                                                <a href="" @click.prevent.stop="revokeServer(server)">revoke</a>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div class="f-group">
+                                <label for="password">Password <i class="f-required">*</i></label>
+                                <input type="password" id="password" v-model="ui.users.form.password">
                             </div>
-                        </div>
-                    </template>
-                </div>
 
-            </template>
+                            <button type="submit">Submit</button>
+                        </form>
+                    </div>
+                </template>
+
+                <template v-if="route.startsWith('users.list')">
+                    <div>
+                        <button class="btn btn--primary" @click="selectRoute('users.create')">Create a new user</button>
+
+                        <div class="mt2">
+                            <table>
+                                <tbody>
+                                    <tr v-for="username in users">
+                                        <td>
+                                            {{ username }}
+                                        </td>
+                                        <td>
+                                            <a href="" @click.prevent.stop="deleteUser(username)">delete</a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </template>
+            </div>
 
         </main>
     </div>
@@ -241,8 +261,21 @@
     <script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
     <script src="https://unpkg.com/v-tooltip"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+    <script src="cookies.js"></script>
     
     <script>
+        var authToken = getCookie('auth_token')
+        var headers = {
+            'Authorization': 'Bearer ' + authToken
+        }
+
+        var redirectIfUnauthorized = function (error) {
+            console.log(error)
+            if (error.response && error.response.status == 401) {
+                window.location.href = '/login.html'
+            }
+        }
+
         var app = new Vue({
             el: '[data-js="vue-root"]',
             data: {
@@ -254,89 +287,26 @@
                             ip: null,
                             jwt: null
                         }
+                    },
+                    users: {
+                        form: {
+                            username: null,
+                            password: null
+                        }
                     }
                 },
                 route: 'dashboard',
                 servers: [],
-                metrics: [
-                    {
-                        server: {
-                            name: 'q-demos2',
-                            ip: '156.123.19.95',
-                            default_partition: '/'
-                        },
-                        data: {
-                            "cpu.core_count": 8,
-                            "cpu.load_1": 0.30375,
-                            "cpu.load_15": 0.1975,
-                            "cpu.load_5": 0.24375,
-                            "cpu.usage": 0.9987515605493134,
-                            "disk.usage": {
-                                "/": {
-                                    "free": 175.2957420349121,
-                                    "percent": 23.366581902745757,
-                                    "total": 233.46913528442383
-                                },
-                                "/private/var/vm": {
-                                    "free": 175.2957420349121,
-                                    "percent": 1.2849745941070774,
-                                    "total": 233.46913528442383
-                                }
-                            },
-                            "memory.used_percent": 56.44090175628662
-                        }
-                    },
-                    {
-                        server: {
-                            name: 'q-demos3',
-                            ip: '156.12.67.224',
-                            default_partition: '/'
-                        },
-                        data: {
-                            "cpu.core_count": 8,
-                            "cpu.load_1": 0.30375,
-                            "cpu.load_15": 0.1975,
-                            "cpu.load_5": 0.24375,
-                            "cpu.usage": 23.6436,
-                            "disk.usage": {
-                                "/": {
-                                    "free": 175.2957420349121,
-                                    "percent": 23.366581902745757,
-                                    "total": 233.46913528442383
-                                },
-                                "/private/var/vm": {
-                                    "free": 175.2957420349121,
-                                    "percent": 1.2849745941070774,
-                                    "total": 233.46913528442383
-                                }
-                            },
-                            "memory.used_percent": 56.44090175628662
-                        }
-                    }
-                ]
-            },
-            computed: {
-                needsLogin () {
-                    return false
-                }
+                users: [],
+                metrics: []
             },
             methods: {
                 selectRoute (route) {
-                    // if (route === 'servers')
-                    // switch (route) {
-                    //     case 'servers':
-                    //         this.ui.servers.form.name = null
-                    //         this.ui.servers.form.ip = null
-                    //         this.ui.servers.form.jwt = null
-                    //         this.ui.servers.showForm = false
-                    //         break;
-                    
-                    //     default:
-                    //         break;
-                    // }
-
                     if (route.startsWith('servers.list')) {
                         this.getServers()
+                    }
+                    if (route.startsWith('users.list')) {
+                        this.getUsers()
                     }
 
                     this.route = route
@@ -345,32 +315,64 @@
                     return value.toFixed(2) + '%'
                 },
                 getServers () {
-                    axios.get('http://localhost:1323/api/servers').then((response) => {
+                    axios.get('http://localhost:1323/api/servers', {headers: headers}).then((response) => {
                         this.servers = response.data.servers
+                    }).catch((error) => {
+                        redirectIfUnauthorized(error)
+                        console.log(error)
+                    })
+                },
+                getUsers () {
+                    axios.get('http://localhost:1323/api/users', {headers: headers}).then((response) => {
+                        this.users = response.data.users
+                    }).catch((error) => {
+                        redirectIfUnauthorized(error)
+                        console.log(error)
                     })
                 },
                 getMetrics () {
-                    axios.get('http://localhost:1323/api/metrics').then((response) => {
+                    axios.get('http://localhost:1323/api/metrics', {headers: headers}).then((response) => {
                         this.metrics = response.data
+                    }).catch((error) => {
+                        redirectIfUnauthorized(error)
+                        console.log(error)
                     })
-                },
-                showRegisterForm () {
-                    // this.ui.servers.showForm = true
-                    this.route = 'servers.form.create'
                 },
                 registerSubmit (e) {
                     var data = this.ui.servers.form
-                    axios.post('http://localhost:1323/api/servers/register', data).then((response) => {
+                    axios.post('http://localhost:1323/api/servers/register', data, {headers: headers}).then((response) => {
                         console.log(response)
                         this.ui.servers.form.jwt = response.data.jwt
                         this.selectRoute('servers.form.confirmation')
                     }).catch((error) => {
+                        redirectIfUnauthorized(error)
                         console.log(error)
                     })
                 },
                 revokeServer (server) {
-                    axios.delete('http://localhost:1323/api/servers/' + server.id).then((response) => {
+                    axios.delete('http://localhost:1323/api/servers/' + server.id, {headers: headers}).then((response) => {
                         this.selectRoute('servers.list')
+                    }).catch((error) => {
+                        redirectIfUnauthorized(error)
+                        console.log(error)
+                    })
+                },
+                createUser () {
+                    var data = this.ui.users.form
+                    axios.post('http://localhost:1323/api/users', data, {headers: headers}).then((response) => {
+                        console.log(response)
+                        this.selectRoute('users.list')
+                    }).catch((error) => {
+                        redirectIfUnauthorized(error)
+                        console.log(error)
+                    })
+                },
+                deleteUser (username) {
+                    axios.delete('http://localhost:1323/api/users/' + username, {headers: headers}).then((response) => {
+                        this.selectRoute('users.list')
+                    }).catch((error) => {
+                        redirectIfUnauthorized(error)
+                        console.log(error)
                     })
                 },
                 copyJwt (e) {

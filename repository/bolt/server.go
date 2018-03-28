@@ -2,6 +2,7 @@ package bolt
 
 import (
 	"encoding/json"
+	"sort"
 	"webup/syshealth"
 	"webup/syshealth/jwttools"
 
@@ -55,17 +56,19 @@ func (repo *serverRepository) GetServers() ([]syshealth.Server, error) {
 		return err
 	})
 
+	sort.Sort(serversByName(servers))
+
 	return servers, err
 }
 
-func (repo *serverRepository) RegisterServer(server syshealth.Server) (string, error) {
+func (repo *serverRepository) RegisterServer(server syshealth.Server, jwtSecret string) (string, error) {
 
 	db, err := GetConnection()
 	if err != nil {
 		return "", errors.Wrap(err, "unable to open bolt db")
 	}
 
-	token, id, err := jwttools.GetToken(server)
+	token, id, err := jwttools.GetToken(server, jwtSecret)
 	if err != nil {
 		return "", err
 	}
@@ -142,4 +145,18 @@ func (repo *serverRepository) CheckServerIsRegistered(id string) (bool, error) {
 	})
 
 	return found, err
+}
+
+// servers sorting
+
+type serversByName []syshealth.Server
+
+func (s serversByName) Len() int {
+	return len(s)
+}
+func (s serversByName) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s serversByName) Less(i, j int) bool {
+	return s[i].Name < s[j].Name
 }

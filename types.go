@@ -20,7 +20,7 @@ type ServerRepository interface {
 	// GetServers returns the complete list of registered servers
 	GetServers() ([]Server, error)
 	// RegisterServer returns a JWT or an error
-	RegisterServer(server Server) (string, error)
+	RegisterServer(server Server, jwtSecret string) (string, error)
 	// RevokeServer revokes a server token
 	RevokeServer(id string) error
 	// CheckServerIsRegistered checks if a server is registered
@@ -37,5 +37,7 @@ type MetricRepository interface {
 type AdminUserRepository interface {
 	IsSetup() (bool, error)
 	Login(username string, password string) (bool, error)
+	GetUsers() ([]string, error)
 	Create(username string, password string) error
+	Delete(username string) error
 }
