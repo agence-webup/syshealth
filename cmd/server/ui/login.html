@@ -36,6 +36,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
     <script src="cookies.js"></script>
     <script>
+        var serverUrl = ''  // to set a custom server url
+
         var app = new Vue({
             el: '[data-js="vue-root"]',
             data: {
@@ -51,7 +53,7 @@
                         username: this.username,
                         password: this.password
                     }
-                    axios.post('http://localhost:1323/api/login', data).then((response) => {
+                    axios.post(serverUrl + '/api/login', data).then((response) => {
                         console.log(response)
                         setCookie('auth_token', response.data.jwt)
                         window.location.href = 'index.html'

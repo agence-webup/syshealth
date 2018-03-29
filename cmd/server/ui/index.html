@@ -264,6 +264,8 @@
     <script src="cookies.js"></script>
     
     <script>
+        var serverUrl = ''  // to set a custom server url
+
         var authToken = getCookie('auth_token')
         var headers = {
             'Authorization': 'Bearer ' + authToken
@@ -315,7 +317,7 @@
                     return value.toFixed(2) + '%'
                 },
                 getServers () {
-                    axios.get('http://localhost:1323/api/servers', {headers: headers}).then((response) => {
+                    axios.get(serverUrl + '/api/servers', {headers: headers}).then((response) => {
                         this.servers = response.data.servers
                     }).catch((error) => {
                         redirectIfUnauthorized(error)
@@ -323,7 +325,7 @@
                     })
                 },
                 getUsers () {
-                    axios.get('http://localhost:1323/api/users', {headers: headers}).then((response) => {
+                    axios.get(serverUrl + '/api/users', {headers: headers}).then((response) => {
                         this.users = response.data.users
                     }).catch((error) => {
                         redirectIfUnauthorized(error)
@@ -331,7 +333,7 @@
                     })
                 },
                 getMetrics () {
-                    axios.get('http://localhost:1323/api/metrics', {headers: headers}).then((response) => {
+                    axios.get(serverUrl + '/api/metrics', {headers: headers}).then((response) => {
                         this.metrics = response.data
                     }).catch((error) => {
                         redirectIfUnauthorized(error)
@@ -340,7 +342,7 @@
                 },
                 registerSubmit (e) {
                     var data = this.ui.servers.form
-                    axios.post('http://localhost:1323/api/servers/register', data, {headers: headers}).then((response) => {
+                    axios.post(serverUrl + '/api/servers/register', data, {headers: headers}).then((response) => {
                         console.log(response)
                         this.ui.servers.form.jwt = response.data.jwt
                         this.selectRoute('servers.form.confirmation')
@@ -350,7 +352,7 @@
                     })
                 },
                 revokeServer (server) {
-                    axios.delete('http://localhost:1323/api/servers/' + server.id, {headers: headers}).then((response) => {
+                    axios.delete(serverUrl + '/api/servers/' + server.id, {headers: headers}).then((response) => {
                         this.selectRoute('servers.list')
                     }).catch((error) => {
                         redirectIfUnauthorized(error)
@@ -359,7 +361,7 @@
                 },
                 createUser () {
                     var data = this.ui.users.form
-                    axios.post('http://localhost:1323/api/users', data, {headers: headers}).then((response) => {
+                    axios.post(serverUrl + '/api/users', data, {headers: headers}).then((response) => {
                         console.log(response)
                         this.selectRoute('users.list')
                     }).catch((error) => {
@@ -368,7 +370,7 @@
                     })
                 },
                 deleteUser (username) {
-                    axios.delete('http://localhost:1323/api/users/' + username, {headers: headers}).then((response) => {
+                    axios.delete(serverUrl + '/api/users/' + username, {headers: headers}).then((response) => {
                         this.selectRoute('users.list')
                     }).catch((error) => {
                         redirectIfUnauthorized(error)
