@@ -131,7 +131,17 @@
                                         </v-popover>
                                     </td>
                                     <td>
-                                        <span v-if="item.data">{{formatPercent(item.data['memory.used_percent'])}}</span>
+                                        <v-popover offset="4" trigger="hover" v-if="item.data" popover-base-class="vtooltip popover">
+                                            <span class="tooltip-target">{{formatPercent(item.data['memory.used_percent'])}}</span>
+                                            <template slot="popover">
+                                                <table class="table__noborder">
+                                                    <tr>
+                                                        <td class="txtright bold">Available</td>
+                                                        <td>{{item.data['memory.available'].toFixed(2)}} GB</td>
+                                                    </tr>
+                                                </table>
+                                            </template>
+                                        </v-popover>
                                     </td>
                                     <td>
                                         <v-popover offset="4" trigger="hover" v-if="item.data" popover-base-class="vtooltip popover">

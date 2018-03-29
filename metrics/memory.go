@@ -16,6 +16,7 @@ func GetMemory() (syshealth.Data, error) {
 		return data, errors.Wrap(err, "cannot get virtual memory")
 	}
 
+	data["memory.available"] = float64(v.Available) / 1024.0 / 1024.0 / 1024.0 // from bytes to gigabytes
 	data["memory.used_percent"] = v.UsedPercent
 
 	return data, nil
