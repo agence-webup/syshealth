@@ -35,7 +35,7 @@
             font-family: monospace;
         }
 
-        .tooltip.popover .popover-inner {
+        .vtooltip.popover .popover-inner {
             font-size: 1.1rem;
             background: #f9f9f9;
             color: black;
@@ -43,10 +43,10 @@
             border-radius: 5px;
             box-shadow: 0 5px 30px rgba(0, 0, 0, 0.1);
         }
-        .tooltip.popover .popover-arrow {
+        .vtooltip.popover .popover-arrow {
             border-color: #f9f9f9;
         }
-        .tooltip.popover ul {
+        .vtooltip.popover ul {
             margin: 0;
         }
 
@@ -100,7 +100,7 @@
                                 <tr v-for="item in metrics">
                                     <td><span class="tag" :class="{ 'tag--green': item.data, 'tag--red': !item.data }"></span></td>
                                     <td class="bold">
-                                        <v-popover offset="4" trigger="hover">
+                                        <v-popover offset="4" trigger="hover" popover-base-class="vtooltip popover">
                                             <span class="tooltip-target">{{item.server.name}}</span>
                                             <template slot="popover">
                                             <div class="pl4 pr4">
@@ -110,7 +110,7 @@
                                         </v-popover>
                                     </td>
                                     <td>
-                                        <v-popover offset="4" trigger="hover" v-if="item.data">
+                                        <v-popover offset="4" trigger="hover" v-if="item.data" popover-base-class="vtooltip popover">
                                             <span class="tooltip-target">{{formatPercent(item.data['cpu.usage'])}}</span>
                                             <template slot="popover">
                                                 <table class="table__noborder">
@@ -134,7 +134,7 @@
                                         <span v-if="item.data">{{formatPercent(item.data['memory.used_percent'])}}</span>
                                     </td>
                                     <td>
-                                        <v-popover offset="4" trigger="hover" v-if="item.data">
+                                        <v-popover offset="4" trigger="hover" v-if="item.data" popover-base-class="vtooltip popover">
                                             <span class="tooltip-target">{{formatPercent(item.data['disk.usage'][item.server.default_partition]['percent'])}}</span>
                                             <template slot="popover">
                                                 <table class="table__noborder">
@@ -259,7 +259,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.15/vue.js"></script>
     <script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
-    <script src="https://unpkg.com/v-tooltip"></script>
+    <script src="https://unpkg.com/v-tooltip@2.0.0-rc.31/dist/v-tooltip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
     <script src="cookies.js"></script>
     
