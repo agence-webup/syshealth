@@ -246,7 +246,9 @@ func main() {
 				metrics := []metric{}
 				for _, server := range servers {
 					data, err := metricRepo.Get(server.ID)
-					log.Println(errors.Wrap(err, "unable to get data for registered server"))
+					if err != nil {
+						log.Println(errors.Wrap(err, "unable to get data for registered server"))
+					}
 
 					metrics = append(metrics, metric{
 						Server: serverData{Server: server, DefaultPartition: "/"},

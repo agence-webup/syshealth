@@ -2,7 +2,6 @@ package memory
 
 import (
 	"errors"
-	"log"
 	"webup/syshealth"
 )
 
@@ -28,7 +27,7 @@ func (repo *metricRepository) Get(serverID string) (*syshealth.Data, error) {
 func (repo *metricRepository) Store(serverID string, data syshealth.Data) error {
 	repo.metricsByServerID[serverID] = data
 
-	log.Printf("metric received for server %v: %v\n", serverID, data)
+	// log.Printf("metric received for server %v: %v\n", serverID, data)
 
 	return nil
 }
