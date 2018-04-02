@@ -1,0 +1,24 @@
+package threshold
+
+import "webup/syshealth"
+
+type MemoryUsageTrigger struct {
+}
+
+func (trigger *MemoryUsageTrigger) GetKey() TriggerKey {
+	return "memory.usage"
+}
+
+func (trigger *MemoryUsageTrigger) Check(metrics syshealth.Data) Level {
+	if raw, ok := metrics["memory.available"]; ok {
+		if available, ok := raw.(float64); ok {
+			if available <= 0.3 {
+				return Critical
+			}
+			if available <= 0.5 {
+				return Warning
+			}
+		}
+	}
+	return None
+}

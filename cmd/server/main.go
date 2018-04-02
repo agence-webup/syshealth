@@ -12,6 +12,7 @@ import (
 	"webup/syshealth"
 	"webup/syshealth/repository/bolt"
 	"webup/syshealth/repository/memory"
+	"webup/syshealth/threshold"
 
 	_ "webup/syshealth/cmd/server/statik"
 
@@ -63,6 +64,8 @@ func main() {
 			adminUserRepo := bolt.GetAdminUserRepository()
 			serverRepo := bolt.GetServerRepository()
 			metricRepo := memory.GetMetricRepository()
+
+			receivedDataForTriggers := threshold.StartWatching()
 
 			// setup
 			authEnabled, err := adminUserRepo.IsSetup()
@@ -129,6 +132,9 @@ func main() {
 				if err != nil {
 					return echo.NewHTTPError(http.StatusBadRequest, errors.Wrap(err, "unable to store metric"))
 				}
+
+				// send data for triggers
+				receivedDataForTriggers <- data.Metrics
 
 				return c.NoContent(http.StatusOK)
 
