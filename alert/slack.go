@@ -1,4 +1,4 @@
-package alerts
+package alert
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
-	"webup/syshealth/threshold"
+	"webup/syshealth"
 
 	"github.com/pkg/errors"
 )
@@ -65,7 +65,7 @@ func InitSlackAlerter(URL string) {
 	webhookURL = URL
 }
 
-func SendSlackAlert(alert Alert) error {
+func SendSlackAlert(alert syshealth.Alert) error {
 
 	// check if alerter is initialized
 	if webhookURL == "" {
@@ -105,7 +105,7 @@ func SendSlackAlert(alert Alert) error {
 	return nil
 }
 
-func getPayload(alert Alert) slackPayload {
+func getPayload(alert syshealth.Alert) slackPayload {
 	return slackPayload{
 		Attachments: []slackPayloadAttachment{
 			slackPayloadAttachment{
@@ -134,11 +134,11 @@ func getPayload(alert Alert) slackPayload {
 	}
 }
 
-func getSlackColorForLevel(level threshold.Level) string {
+func getSlackColorForLevel(level syshealth.ThresholdLevel) string {
 	switch level {
-	case threshold.Critical:
+	case syshealth.Critical:
 		return "danger"
-	case threshold.Warning:
+	case syshealth.Warning:
 		return "warning"
 	default:
 		return "good"

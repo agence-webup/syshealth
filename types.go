@@ -41,3 +41,33 @@ type AdminUserRepository interface {
 	Create(username string, password string) error
 	Delete(username string) error
 }
+
+type Alert struct {
+	IssueTitle string
+	Server     Server
+	Level      ThresholdLevel
+}
+
+// ThresholdLevel represents a level of threshold
+type ThresholdLevel int
+
+const (
+	// None represents that everything is OK
+	None ThresholdLevel = 0
+	// Warning represents the warning threshold
+	Warning ThresholdLevel = 1
+	// Critical represents the critical threshold
+	Critical ThresholdLevel = 2
+)
+
+// Label returns a label representing the level
+func (l ThresholdLevel) Label() string {
+	switch l {
+	case Critical:
+		return "Critical"
+	case Warning:
+		return "Warning"
+	default:
+		return ""
+	}
+}

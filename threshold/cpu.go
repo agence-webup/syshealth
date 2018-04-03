@@ -9,16 +9,16 @@ func (trigger *CPULoadTrigger) GetKey() TriggerKey {
 	return "cpu.overload"
 }
 
-func (trigger *CPULoadTrigger) Check(metrics syshealth.Data) Level {
+func (trigger *CPULoadTrigger) Check(metrics syshealth.Data) syshealth.ThresholdLevel {
 	if rawLoad, ok := metrics["cpu.load_5"]; ok {
 		if load, ok := rawLoad.(float64); ok {
 			if load >= 0.8 {
-				return Critical
+				return syshealth.Critical
 			}
 			if load >= 0.05 {
-				return Warning
+				return syshealth.Warning
 			}
 		}
 	}
-	return None
+	return syshealth.None
 }

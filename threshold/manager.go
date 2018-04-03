@@ -1,10 +1,10 @@
 package threshold
 
 import (
-	"fmt"
 	"log"
 	"time"
 	"webup/syshealth"
+	"webup/syshealth/alert"
 )
 
 type manager struct {
@@ -15,7 +15,7 @@ type manager struct {
 type triggerState struct {
 	LastChange time.Time
 	Count      int
-	Level      Level
+	Level      syshealth.ThresholdLevel
 }
 
 var man *manager
@@ -50,21 +50,27 @@ func StartWatching() (receivedData chan syshealth.Data) {
 					state := man.stateByTrigger[t.GetKey()]
 
 					// detect a change
-					if state.Level == None && result > None || state.Level > None && result == None {
+					if state.Level == syshealth.None && result > syshealth.None || state.Level > syshealth.None && result == syshealth.None {
 						state.LastChange = time.Now()
-						log.Println("trigger.cpu: change detected", result)
+						log.Printf("%v: change detected\n", t.GetKey())
 					}
 
 					// update the level
 					state.Level = result
 
 					// check if the trigger must be activated
-					if state.Level > None && time.Now().Sub(state.LastChange) >= time.Duration(2)*time.Minute {
-						fmt.Println("TRIGGER:", state.Level)
+					if state.Level > syshealth.None && time.Now().Sub(state.LastChange) >= time.Duration(10)*time.Second {
+
+						// send alert
+						err := alert.SendSlackAlert(syshealth.Alert{
+							IssueTitle: string(t.GetKey()),
+							Server:     syshealth.Server{Name: "test", IP: "0.0.0.0"},
+							Level:      state.Level,
+						})
+						if err != nil {
+							log.Println("cannot send alert:", err)
+						}
 						state.LastChange = time.Now()
-					} else {
-						log.Println("trigger.cpu: no trigger needed")
-						log.Println((time.Now().Sub(state.LastChange)).Seconds(), "sec remaining before triggering")
 					}
 
 					man.stateByTrigger[t.GetKey()] = state

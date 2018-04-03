@@ -9,16 +9,16 @@ func (trigger *MemoryUsageTrigger) GetKey() TriggerKey {
 	return "memory.usage"
 }
 
-func (trigger *MemoryUsageTrigger) Check(metrics syshealth.Data) Level {
+func (trigger *MemoryUsageTrigger) Check(metrics syshealth.Data) syshealth.ThresholdLevel {
 	if raw, ok := metrics["memory.available"]; ok {
 		if available, ok := raw.(float64); ok {
 			if available <= 0.3 {
-				return Critical
+				return syshealth.Critical
 			}
 			if available <= 0.5 {
-				return Warning
+				return syshealth.Warning
 			}
 		}
 	}
-	return None
+	return syshealth.None
 }
