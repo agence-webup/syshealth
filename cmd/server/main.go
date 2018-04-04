@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 	"webup/syshealth"
+	"webup/syshealth/alert"
 	"webup/syshealth/repository/bolt"
 	"webup/syshealth/repository/memory"
 	"webup/syshealth/threshold"
@@ -32,7 +33,7 @@ func main() {
 
 	app.Command("daemon", "Start the API listening for metrics and serving the UI", func(cmd *cli.Cmd) {
 
-		cmd.Spec = "[--listening-ip] [--listening-port] [--agent-jwt-secret] [--client-jwt-secret]"
+		cmd.Spec = "[--listening-ip] [--listening-port] [--agent-jwt-secret] [--client-jwt-secret] [--slack-webhook-url]"
 
 		listeningIP := cmd.String(cli.StringOpt{
 			Name:   "listening-ip",
@@ -58,6 +59,12 @@ func main() {
 			Desc:   "JWT secret for clients authentication",
 			EnvVar: "SYSHEALTH_CLIENT_JWT_SECRET",
 		})
+		slackWebhookURL := cmd.String(cli.StringOpt{
+			Name:   "slack-webhook-url",
+			Value:  "",
+			Desc:   "Slack webhook URL for sending alerts",
+			EnvVar: "SYSHEALTH_SLACK_WEBHOOK_URL",
+		})
 
 		cmd.Action = func() {
 
@@ -66,6 +73,7 @@ func main() {
 			metricRepo := memory.GetMetricRepository()
 
 			receivedDataForTriggers := threshold.StartWatching()
+			alert.InitSlackAlerter(*slackWebhookURL)
 
 			// setup
 			authEnabled, err := adminUserRepo.IsSetup()

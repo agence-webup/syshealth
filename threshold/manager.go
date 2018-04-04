@@ -59,7 +59,7 @@ func StartWatching() (receivedData chan syshealth.Data) {
 					state.Level = result
 
 					// check if the trigger must be activated
-					if state.Level > syshealth.None && time.Now().Sub(state.LastChange) >= time.Duration(10)*time.Second {
+					if state.Level > syshealth.None && time.Now().Sub(state.LastChange) >= time.Duration(2)*time.Minute {
 
 						// send alert
 						err := alert.SendSlackAlert(syshealth.Alert{

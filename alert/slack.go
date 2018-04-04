@@ -96,11 +96,13 @@ func SendSlackAlert(alert syshealth.Alert) error {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return errors.Wrap(err, "cannot read response body")
+	if resp.StatusCode >= 400 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return errors.Wrap(err, "cannot read response body")
+		}
+		return errors.WithMessage(errors.New("error with Slack webhook"), string(body))
 	}
-	fmt.Println(string(body))
 
 	return nil
 }

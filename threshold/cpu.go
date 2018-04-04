@@ -15,7 +15,7 @@ func (trigger *CPULoadTrigger) Check(metrics syshealth.Data) syshealth.Threshold
 			if load >= 0.8 {
 				return syshealth.Critical
 			}
-			if load >= 0.05 {
+			if load >= 0.6 {
 				return syshealth.Warning
 			}
 		}
