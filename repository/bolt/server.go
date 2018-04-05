@@ -119,14 +119,14 @@ func (repo *serverRepository) RevokeServer(id string) error {
 	return err
 }
 
-func (repo *serverRepository) CheckServerIsRegistered(id string) (bool, error) {
+func (repo *serverRepository) GetServer(id string) (*syshealth.Server, error) {
 
 	db, err := GetConnection()
 	if err != nil {
-		return false, errors.Wrap(err, "unable to open bolt db")
+		return nil, errors.Wrap(err, "unable to open bolt db")
 	}
 
-	found := false
+	var server *syshealth.Server
 
 	err = db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(bucketServers)
@@ -139,12 +139,23 @@ func (repo *serverRepository) CheckServerIsRegistered(id string) (bool, error) {
 			return nil
 		}
 
-		found = b.Get([]byte(id)) != nil
+		data := b.Get([]byte(id))
+		if data == nil {
+			return nil
+		}
+
+		s := new(syshealth.Server)
+		err := json.Unmarshal(data, s)
+		if err != nil {
+			return errors.Wrap(err, "cannot unmarshal server data for bolt db")
+		}
+
+		server = s
 
 		return nil
 	})
 
-	return found, err
+	return server, err
 }
 
 // servers sorting

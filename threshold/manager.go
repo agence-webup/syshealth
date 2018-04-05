@@ -20,7 +20,7 @@ type triggerState struct {
 
 var man *manager
 
-func StartWatching() (receivedData chan syshealth.Data) {
+func StartWatching() (receivedData chan syshealth.TriggerData) {
 
 	man = new(manager)
 
@@ -37,14 +37,14 @@ func StartWatching() (receivedData chan syshealth.Data) {
 		man.stateByTrigger[t.GetKey()] = triggerState{}
 	}
 
-	receivedData = make(chan syshealth.Data)
+	receivedData = make(chan syshealth.TriggerData)
 
 	go func() {
 		for {
 			select {
 			case data := <-receivedData:
 				for _, t := range man.triggers {
-					result := t.Check(data)
+					result := t.Check(data.Metrics)
 
 					// get current state
 					state := man.stateByTrigger[t.GetKey()]
@@ -64,7 +64,7 @@ func StartWatching() (receivedData chan syshealth.Data) {
 						// send alert
 						err := alert.SendSlackAlert(syshealth.Alert{
 							IssueTitle: string(t.GetKey()),
-							Server:     syshealth.Server{Name: "test", IP: "0.0.0.0"},
+							Server:     data.Server,
 							Level:      state.Level,
 						})
 						if err != nil {

@@ -23,8 +23,8 @@ type ServerRepository interface {
 	RegisterServer(server Server, jwtSecret string) (string, error)
 	// RevokeServer revokes a server token
 	RevokeServer(id string) error
-	// CheckServerIsRegistered checks if a server is registered
-	CheckServerIsRegistered(id string) (bool, error)
+	// GetServer returns the server associated to the given id, if it is registered
+	GetServer(id string) (*Server, error)
 }
 
 // MetricRepository defines the behaviour of the metric repository
@@ -42,6 +42,13 @@ type AdminUserRepository interface {
 	Delete(username string) error
 }
 
+// TriggerData represents data needed to handle triggers
+type TriggerData struct {
+	Server  Server
+	Metrics Data
+}
+
+// Alert represents data for sending alert
 type Alert struct {
 	IssueTitle string
 	Server     Server

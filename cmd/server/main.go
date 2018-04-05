@@ -115,16 +115,16 @@ func main() {
 			// endpoint used by agents to send their metrics
 			e.POST("/api/metrics", func(c echo.Context) error {
 
-				server := c.Get("user").(*jwt.Token)
-				claims := server.Claims.(jwt.MapClaims)
+				token := c.Get("user").(*jwt.Token)
+				claims := token.Claims.(jwt.MapClaims)
 				id := claims["jti"].(string)
 
 				// check if server is registered
-				found, err := serverRepo.CheckServerIsRegistered(id)
+				server, err := serverRepo.GetServer(id)
 				if err != nil {
 					return echo.NewHTTPError(http.StatusBadRequest, errors.Wrap(err, "unable to check if server is registered"))
 				}
-				if !found {
+				if server == nil {
 					return c.NoContent(http.StatusUnauthorized)
 				}
 
@@ -142,7 +142,7 @@ func main() {
 				}
 
 				// send data for triggers
-				receivedDataForTriggers <- data.Metrics
+				receivedDataForTriggers <- syshealth.TriggerData{Server: *server, Metrics: data.Metrics}
 
 				return c.NoContent(http.StatusOK)
 
