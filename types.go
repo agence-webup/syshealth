@@ -42,8 +42,8 @@ type AdminUserRepository interface {
 	Delete(username string) error
 }
 
-// TriggerData represents data needed to handle triggers
-type TriggerData struct {
+// WatcherData represents data needed by watchers
+type WatcherData struct {
 	Server  Server
 	Metrics Data
 }
@@ -77,4 +77,13 @@ func (l ThresholdLevel) Label() string {
 	default:
 		return ""
 	}
+}
+
+// WatcherKey represents a key to identify a watcher
+type WatcherKey string
+
+// Watcher defines the behaviour for watching metrics data
+type Watcher interface {
+	GetKey() WatcherKey
+	Watch(data WatcherData)
 }

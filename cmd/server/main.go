@@ -13,7 +13,7 @@ import (
 	"webup/syshealth/alert"
 	"webup/syshealth/repository/bolt"
 	"webup/syshealth/repository/memory"
-	"webup/syshealth/threshold"
+	"webup/syshealth/watcher"
 
 	_ "webup/syshealth/cmd/server/statik"
 
@@ -72,8 +72,10 @@ func main() {
 			serverRepo := bolt.GetServerRepository()
 			metricRepo := memory.GetMetricRepository()
 
-			receivedDataForTriggers := threshold.StartWatching()
 			alert.InitSlackAlerter(*slackWebhookURL)
+
+			// start the watcher process
+			receivedDataForWatchers := watcher.Start()
 
 			// setup
 			authEnabled, err := adminUserRepo.IsSetup()
@@ -142,7 +144,7 @@ func main() {
 				}
 
 				// send data for triggers
-				receivedDataForTriggers <- syshealth.TriggerData{Server: *server, Metrics: data.Metrics}
+				receivedDataForWatchers <- syshealth.WatcherData{Server: *server, Metrics: data.Metrics}
 
 				return c.NoContent(http.StatusOK)
 

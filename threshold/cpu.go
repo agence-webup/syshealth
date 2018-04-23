@@ -5,7 +5,7 @@ import "webup/syshealth"
 type CPULoadTrigger struct {
 }
 
-func (trigger *CPULoadTrigger) GetKey() TriggerKey {
+func (trigger *CPULoadTrigger) GetKey() key {
 	return "cpu.overload"
 }
 

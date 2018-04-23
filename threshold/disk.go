@@ -5,7 +5,7 @@ import "webup/syshealth"
 type DiskUsageTrigger struct {
 }
 
-func (trigger *DiskUsageTrigger) GetKey() TriggerKey {
+func (trigger *DiskUsageTrigger) GetKey() key {
 	return "disk.usage"
 }
 

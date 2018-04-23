@@ -5,7 +5,7 @@ import "webup/syshealth"
 type MemoryUsageTrigger struct {
 }
 
-func (trigger *MemoryUsageTrigger) GetKey() TriggerKey {
+func (trigger *MemoryUsageTrigger) GetKey() key {
 	return "memory.usage"
 }
 
