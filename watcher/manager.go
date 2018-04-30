@@ -2,7 +2,6 @@ package watcher
 
 import (
 	"webup/syshealth"
-	"webup/syshealth/threshold"
 )
 
 type manager struct {
@@ -12,14 +11,12 @@ type manager struct {
 var man *manager
 
 // Start launches the routine responsible to start and handle watchers
-func Start() (receivedData chan syshealth.WatcherData) {
+func Start(watchers []syshealth.Watcher) (receivedData chan syshealth.WatcherData) {
 
 	man = new(manager)
 
 	// enable triggers
-	man.watchers = []syshealth.Watcher{
-		threshold.NewWatcher(),
-	}
+	man.watchers = watchers
 
 	receivedData = make(chan syshealth.WatcherData)
 

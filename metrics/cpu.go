@@ -9,6 +9,17 @@ import (
 	"github.com/shirou/gopsutil/load"
 )
 
+const (
+	coreCountKey = "cpu.core_count"
+	usageKey     = "cpu.usage"
+	load1Key     = "cpu.load_1"
+	load5Key     = "cpu.load_5"
+	load15Key    = "cpu.load_15"
+)
+
+type name struct {
+}
+
 func GetCPU() (syshealth.Data, error) {
 
 	data := syshealth.Data{}
@@ -19,14 +30,14 @@ func GetCPU() (syshealth.Data, error) {
 		cpuCount = 1
 	}
 
-	data["cpu.core_count"] = cpuCount
+	data[coreCountKey] = cpuCount
 
 	// percent
 	percent, err := cpu.Percent(time.Second, false)
 	if err != nil {
 		return data, errors.Wrap(err, "cannot get CPU percent")
 	}
-	data["cpu.usage"] = percent[0]
+	data[usageKey] = percent[0]
 
 	// load
 	l, err := load.Avg()
@@ -38,9 +49,9 @@ func GetCPU() (syshealth.Data, error) {
 	load5 := l.Load5 / float64(cpuCount)
 	load15 := l.Load15 / float64(cpuCount)
 
-	data["cpu.load_1"] = load1
-	data["cpu.load_5"] = load5
-	data["cpu.load_15"] = load15
+	data[load1Key] = load1
+	data[load5Key] = load5
+	data[load15Key] = load15
 
 	return data, nil
 }

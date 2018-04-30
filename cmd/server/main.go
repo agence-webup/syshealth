@@ -11,8 +11,10 @@ import (
 	"time"
 	"webup/syshealth"
 	"webup/syshealth/alert"
+	"webup/syshealth/history"
 	"webup/syshealth/repository/bolt"
 	"webup/syshealth/repository/memory"
+	"webup/syshealth/threshold"
 	"webup/syshealth/watcher"
 
 	_ "webup/syshealth/cmd/server/statik"
@@ -74,8 +76,14 @@ func main() {
 
 			alert.InitSlackAlerter(*slackWebhookURL)
 
+			// prepare watchers
+			historyWatcher, historyFetcher := history.NewWatcher()
+			watchers := []syshealth.Watcher{
+				threshold.NewWatcher(),
+				historyWatcher,
+			}
 			// start the watcher process
-			receivedDataForWatchers := watcher.Start()
+			receivedDataForWatchers := watcher.Start(watchers)
 
 			// setup
 			authEnabled, err := adminUserRepo.IsSetup()
@@ -273,6 +281,31 @@ func main() {
 				}
 
 				return c.JSON(http.StatusOK, metrics)
+			}, clientJwtMiddleware)
+
+			e.GET("/api/metrics/:id", func(c echo.Context) error {
+
+				id := c.Param("id")
+
+				data := historyFetcher(id)
+
+				type point struct {
+					Time string      `json:"t"`
+					Val  interface{} `json:"y"`
+				}
+				jsonData := map[string][]point{}
+				for key, data := range data {
+					points := []point{}
+					for _, v := range data {
+						points = append(points, point{
+							Time: v.Date.Format(time.RFC3339),
+							Val:  v.Value,
+						})
+					}
+					jsonData[key] = points
+				}
+
+				return c.JSON(http.StatusOK, jsonData)
 			}, clientJwtMiddleware)
 
 			e.GET("/api/servers", func(c echo.Context) error {

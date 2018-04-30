@@ -16,6 +16,10 @@
             border-bottom: 1px solid darkgray;
         }
 
+        table tr {
+            cursor: pointer;
+        }
+
         .table__txtsmall {
             font-size: 1.2rem;
             line-height: 1.75;
@@ -50,6 +54,34 @@
             margin: 0;
         }
 
+        .sidemenu-wrapper {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        .sidemenu-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .sidemenu {
+            width: 50%;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: white;
+            padding: 15px;
+            transform: translate3d(100%,0,0);
+            transition: transform .3s;
+            box-shadow: 0 0 5px rgb(231, 231, 231);
+        }
+
+        .show-nav {
+            transform: translate3d(0,0,0);
+        }
+
     </style>
 </head>
 <body>
@@ -72,14 +104,32 @@
         </div>
     </header>
 
-    <div class="layout" data-js="vue-root">
+    <div class="layout sidemenu-wrapper show-nav" data-js="vue-root">
         <nav class="navigation">
             <a href="#" :class="{ 'is-active': route.startsWith('dashboard')}" @click="selectRoute('dashboard')"><i class="fa fa-dashboard icon"></i> Dashboard</a>
             <a href="#" :class="{ 'is-active': route.startsWith('servers')}" @click="selectRoute('servers.list')"><i class="fa fa-server icon"></i> Servers</a>
             <a href="#" :class="{ 'is-active': route.startsWith('users')}" @click="selectRoute('users.list')"><i class="fa fa-users icon"></i> Users</a>
         </nav>
 
-        <main class="content">
+        <main class="content sidemenu-content">
+
+            <div class="sidemenu" :class="{ 'show-nav': ui.sidemenu.server }">
+                <button class="btn" @click.prevent.stop="closeSidemenu">Close</button>
+
+                <server-info v-if="ui.sidemenu.server" :server="ui.sidemenu.server" inline-template>
+                    <div>
+                        <h3 class="txtcenter">{{server.name}} ({{server.ip}})</h3>
+                        <div v-if="loading" class="txtcenter mt5" style="color: #ddd">
+                            <i class="fa fa-cog fa-spin fa-3x fa-fw"></i>
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <div class="w100">
+                            <canvas ref="cpuChart" style="width: 100%; height: 250px;"></canvas>
+                            <canvas ref="memoryChart" style="width: 100%; height: 250px;"></canvas>
+                        </div>
+                    </div>
+                </server-info>
+            </div>
 
             <div v-if="route.startsWith('dashboard')">
                 <h1>Dashboard</h1>
@@ -97,7 +147,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="item in metrics">
+                                <tr v-for="item in metrics" @click="showServerInfo(item.server)">
                                     <td><span class="tag" :class="{ 'tag--green': item.data, 'tag--red': !item.data }"></span></td>
                                     <td class="bold">
                                         <v-popover offset="4" trigger="hover" popover-base-class="vtooltip popover">
@@ -271,6 +321,7 @@
     <script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
     <script src="https://unpkg.com/v-tooltip@2.0.0-rc.31/dist/v-tooltip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
     <script src="cookies.js"></script>
     
     <script>
@@ -287,6 +338,116 @@
                 window.location.href = 'login.html'
             }
         }
+
+        Vue.component('server-info', {
+            props: ['server'],
+            data () {
+                return {
+                    loading: true,
+                    data: null
+                }
+            },
+            methods: {
+                loadData () {
+                    axios.get(serverUrl + '/api/metrics/' + this.server.id, { headers: headers }).then((response) => {
+                        this.data = response.data
+                        this.loading = false
+                        this.updateCharts()
+                    }).catch((error) => {
+                        redirectIfUnauthorized(error)
+                        console.log(error)
+                    })
+                },
+                updateCharts () {
+                    var data = this.data['cpu.usage']
+                    this.cpuChart.data.datasets[0].data = data
+                    this.cpuChart.update()
+
+                    var data = this.data['memory.used_percent']
+                    this.memoryChart.data.datasets[0].data = data
+                    this.memoryChart.update()
+                },
+                getDefaultChartData (label) {
+                    let data = {
+                        datasets: [{
+                            label: label,
+                            fill: false,
+                            borderWidth: 1,
+                            pointRadius: 1,
+                            lineTension: 0,
+                            borderColor: '#2196F3',
+                            pointBackgroundColor: '#2196F3',
+                            backgroundColor: '#2196F3',
+                            data: []
+                        }]
+                    }
+                    return data
+                },
+                getDefaultChartOptions (scales) {
+                    let options = {
+                        tooltips: {
+                            intersect: false
+                        },
+                        scales: {
+                            xAxes: [{
+                                type: 'time',
+                                distribution: 'series',
+                                time: {
+                                    unit: 'minute',
+                                    displayFormats: {
+                                        minute: 'HH:mm'
+                                    }
+                                }
+                            }] 
+                        }
+                    }
+
+                    if (scales.yAxes) {
+                        options.scales['yAxes'] = scales.yAxes
+                    }
+
+                    return options
+                }
+            },
+            mounted () {
+                var cpuChartCtx = this.$refs.cpuChart
+                this.cpuChart = new Chart(cpuChartCtx, {
+                    type: 'line',
+                    data: this.getDefaultChartData('CPU usage'),
+                    options: this.getDefaultChartOptions({
+                        yAxes: [{
+                            ticks: {
+                                min: 0,
+                                max: 100
+                            }
+                        }]
+                    })
+                })
+
+                var memoryChartCtx = this.$refs.memoryChart
+                this.memoryChart = new Chart(memoryChartCtx, {
+                    type: 'line',
+                    data: this.getDefaultChartData('Memory usage'),
+                    options: this.getDefaultChartOptions({
+                        yAxes: [{
+                            ticks: {
+                                min: 0,
+                                max: 100
+                            }
+                        }]
+                    })
+                })
+
+                this.loadData()
+
+                this.ticker = setInterval(() => {
+                    this.loadData()
+                }, 20000)
+            },
+            destroyed () {
+                clearInterval(this.ticker)
+            }
+        })
 
         var app = new Vue({
             el: '[data-js="vue-root"]',
@@ -305,6 +466,10 @@
                             username: null,
                             password: null
                         }
+                    },
+                    sidemenu: {
+                        server: null,
+                        data: null
                     }
                 },
                 route: 'dashboard',
@@ -313,6 +478,13 @@
                 metrics: []
             },
             methods: {
+                showServerInfo (server) {
+                    this.ui.sidemenu.server = server
+                },
+                closeSidemenu () {
+                    this.ui.sidemenu.server = null
+                    this.ui.sidemenu.data = null
+                },
                 selectRoute (route) {
                     if (route.startsWith('servers.list')) {
                         this.getServers()
