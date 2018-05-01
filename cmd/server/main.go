@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -48,6 +49,12 @@ func main() {
 			Value:  "1323",
 			Desc:   "Listening port of the server",
 			EnvVar: "SYSHEALTH_LISTEN_PORT",
+		})
+		listeningPrivatePort := cmd.String(cli.StringOpt{
+			Name:   "listening-private-port",
+			Value:  "1324",
+			Desc:   "Listening port of the private API",
+			EnvVar: "SYSHEALTH_LISTEN_PRIVATE_PORT",
 		})
 		agentJwtSecret := cmd.String(cli.StringOpt{
 			Name:   "agent-jwt-secret",
@@ -360,8 +367,40 @@ func main() {
 				return c.NoContent(http.StatusOK)
 			}, clientJwtMiddleware)
 
+			// private API for support tasks (i.e. backups...)
+			go func() {
+				privateAPI := echo.New()
+				privateAPI.GET("/backup", func(ctx echo.Context) error {
+
+					r, w := io.Pipe()
+
+					go func(w *io.PipeWriter) {
+						err := bolt.Backup(w)
+						if err != nil {
+							log.Println("unable to backup database:", err)
+						}
+						w.Close()
+					}(w)
+
+					return ctx.Stream(http.StatusOK, "application/octet-stream", r)
+				})
+
+				privateAPI.Logger.Fatal(privateAPI.Start("127.0.0.1:" + *listeningPrivatePort))
+			}()
+
 			e.Logger.Fatal(e.Start(*listeningIP + ":" + *listeningPort))
 		}
+	})
+
+	app.Command("backup-help", "Display help on how to backup DB", func(cmd *cli.Cmd) {
+
+		cmd.Action = func() {
+			fmt.Println("A private API is running on the specified port (in daemon options).")
+			fmt.Println("")
+			fmt.Println("To backup, simply run:")
+			fmt.Println("  curl http://127.0.0.1:{private_api_port}/backup > backup.db")
+		}
+
 	})
 
 	app.Run(os.Args)

@@ -1,7 +1,10 @@
 package bolt
 
 import (
+	"io"
+
 	bolt "github.com/coreos/bbolt"
+	"github.com/pkg/errors"
 )
 
 var openedDb *bolt.DB
@@ -23,5 +26,24 @@ func CloseConnection() error {
 	if openedDb != nil {
 		return openedDb.Close()
 	}
+	return nil
+}
+
+// Backup open the connection and write DB content to the specified writer
+func Backup(w io.Writer) error {
+	db, err := GetConnection()
+	if err != nil {
+		return errors.Wrap(err, "unable to get DB")
+	}
+
+	err = db.View(func(tx *bolt.Tx) error {
+		_, err := tx.WriteTo(w)
+		return err
+	})
+
+	if err != nil {
+		return errors.Wrap(err, "unable to write DB content to writer")
+	}
+
 	return nil
 }
