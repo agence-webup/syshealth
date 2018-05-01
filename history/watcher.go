@@ -57,7 +57,7 @@ func NewWatcher() (syshealth.Watcher, DataFetcher) {
 		// 1h of data
 		maxValues := int(time.Hour.Minutes()) + 1
 
-		ticker := time.Tick(time.Duration(10) * time.Second)
+		ticker := time.Tick(time.Duration(1) * time.Minute)
 		for {
 			select {
 			case t := <-ticker:
