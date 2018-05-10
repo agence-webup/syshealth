@@ -15,9 +15,9 @@ import (
 
 func main() {
 
-	app := cli.App("syshealth-agent", "Syshealth agent gathering server metrics")
+	app := cli.App("syshealth-agent", "Syshealth agent gathering host metrics (requires syshealth-server v1.x")
 
-	app.Version("v version", "syshealth-agent v1.0 (build 1)")
+	app.Version("v version", "syshealth-agent v2.0 (build 2)")
 
 	app.Spec = "--jwt --server-url [--polling-rate]"
 

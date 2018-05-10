@@ -32,7 +32,7 @@ func main() {
 
 	app := cli.App("syshealth-server", "Syshealth server with API gathering server metrics sent by agents and an UI to display collected data")
 
-	app.Version("v version", "syshealth-server v1 (build 1)")
+	app.Version("v version", "syshealth-server v2.0 (build 2)")
 
 	app.Command("daemon", "Start the API listening for metrics and serving the UI", func(cmd *cli.Cmd) {
 
