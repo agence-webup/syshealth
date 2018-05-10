@@ -36,7 +36,7 @@ func main() {
 
 	app.Command("daemon", "Start the API listening for metrics and serving the UI", func(cmd *cli.Cmd) {
 
-		cmd.Spec = "[--listening-ip] [--listening-port] [--agent-jwt-secret] [--client-jwt-secret] [--slack-webhook-url]"
+		cmd.Spec = "[--listening-ip] [--listening-port] [--agent-jwt-secret] [--client-jwt-secret] [--slack-webhook-url] [--database-directory]"
 
 		listeningIP := cmd.String(cli.StringOpt{
 			Name:   "listening-ip",
@@ -74,11 +74,17 @@ func main() {
 			Desc:   "Slack webhook URL for sending alerts",
 			EnvVar: "SYSHEALTH_SLACK_WEBHOOK_URL",
 		})
+		databaseDirectory := cmd.String(cli.StringOpt{
+			Name:   "database-directory",
+			Value:  ".",
+			Desc:   "Directory path where the database file will be stored",
+			EnvVar: "SYSHEALTH_DATABASE_DIRECTORY",
+		})
 
 		cmd.Action = func() {
 
-			adminUserRepo := bolt.GetAdminUserRepository()
-			serverRepo := bolt.GetServerRepository()
+			adminUserRepo := bolt.GetAdminUserRepository(*databaseDirectory)
+			serverRepo := bolt.GetServerRepository(*databaseDirectory)
 			metricRepo := memory.GetMetricRepository()
 
 			alert.InitSlackAlerter(*slackWebhookURL)
@@ -375,7 +381,7 @@ func main() {
 					r, w := io.Pipe()
 
 					go func(w *io.PipeWriter) {
-						err := bolt.Backup(w)
+						err := bolt.Backup(w, *databaseDirectory)
 						if err != nil {
 							log.Println("unable to backup database:", err)
 						}

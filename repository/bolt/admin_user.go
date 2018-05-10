@@ -14,12 +14,15 @@ var (
 )
 
 // GetAdminUserRepository returns a new bolt admin user repository
-func GetAdminUserRepository() syshealth.AdminUserRepository {
-	repo := adminUserRepository{}
+func GetAdminUserRepository(databaseDir string) syshealth.AdminUserRepository {
+	repo := adminUserRepository{
+		databaseDir: databaseDir,
+	}
 	return &repo
 }
 
 type adminUserRepository struct {
+	databaseDir string
 }
 
 // adminUser is used to store admin credentials into DB
@@ -30,7 +33,7 @@ type adminUser struct {
 
 func (repo *adminUserRepository) IsSetup() (bool, error) {
 
-	db, err := GetConnection()
+	db, err := GetConnection(repo.databaseDir)
 	if err != nil {
 		return false, errors.Wrap(err, "unable to open bolt db")
 	}
@@ -59,7 +62,7 @@ func (repo *adminUserRepository) IsSetup() (bool, error) {
 
 func (repo *adminUserRepository) Login(username string, password string) (bool, error) {
 
-	db, err := GetConnection()
+	db, err := GetConnection(repo.databaseDir)
 	if err != nil {
 		return false, errors.Wrap(err, "unable to open bolt db")
 	}
@@ -99,7 +102,7 @@ func (repo *adminUserRepository) Login(username string, password string) (bool, 
 
 func (repo *adminUserRepository) GetUsers() ([]string, error) {
 
-	db, err := GetConnection()
+	db, err := GetConnection(repo.databaseDir)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to open bolt db")
 	}
@@ -125,7 +128,7 @@ func (repo *adminUserRepository) GetUsers() ([]string, error) {
 
 func (repo *adminUserRepository) Create(username string, password string) error {
 
-	db, err := GetConnection()
+	db, err := GetConnection(repo.databaseDir)
 	if err != nil {
 		return errors.Wrap(err, "unable to open bolt db")
 	}
@@ -160,7 +163,7 @@ func (repo *adminUserRepository) Create(username string, password string) error 
 
 func (repo *adminUserRepository) Delete(username string) error {
 
-	db, err := GetConnection()
+	db, err := GetConnection(repo.databaseDir)
 	if err != nil {
 		return errors.Wrap(err, "unable to open bolt db")
 	}

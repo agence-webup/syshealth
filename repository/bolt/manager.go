@@ -2,6 +2,7 @@ package bolt
 
 import (
 	"io"
+	"path"
 
 	bolt "github.com/coreos/bbolt"
 	"github.com/pkg/errors"
@@ -10,9 +11,9 @@ import (
 var openedDb *bolt.DB
 
 // GetConnection returns an opened bolt instance
-func GetConnection() (*bolt.DB, error) {
+func GetConnection(databaseDir string) (*bolt.DB, error) {
 	if openedDb == nil {
-		db, err := bolt.Open("syshealth.db", 0600, nil)
+		db, err := bolt.Open(path.Join(databaseDir, "syshealth.db"), 0600, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -30,8 +31,8 @@ func CloseConnection() error {
 }
 
 // Backup open the connection and write DB content to the specified writer
-func Backup(w io.Writer) error {
-	db, err := GetConnection()
+func Backup(w io.Writer, databaseDir string) error {
+	db, err := GetConnection(databaseDir)
 	if err != nil {
 		return errors.Wrap(err, "unable to get DB")
 	}

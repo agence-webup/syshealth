@@ -15,16 +15,19 @@ var (
 )
 
 // GetServerRepository returns a new bolt server repository
-func GetServerRepository() syshealth.ServerRepository {
-	repo := serverRepository{}
+func GetServerRepository(databaseDir string) syshealth.ServerRepository {
+	repo := serverRepository{
+		databaseDir: databaseDir,
+	}
 	return &repo
 }
 
 type serverRepository struct {
+	databaseDir string
 }
 
 func (repo *serverRepository) GetServers() ([]syshealth.Server, error) {
-	db, err := GetConnection()
+	db, err := GetConnection(repo.databaseDir)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to open bolt db")
 	}
@@ -63,7 +66,7 @@ func (repo *serverRepository) GetServers() ([]syshealth.Server, error) {
 
 func (repo *serverRepository) RegisterServer(server syshealth.Server, jwtSecret string) (string, error) {
 
-	db, err := GetConnection()
+	db, err := GetConnection(repo.databaseDir)
 	if err != nil {
 		return "", errors.Wrap(err, "unable to open bolt db")
 	}
@@ -96,7 +99,7 @@ func (repo *serverRepository) RegisterServer(server syshealth.Server, jwtSecret 
 
 func (repo *serverRepository) RevokeServer(id string) error {
 
-	db, err := GetConnection()
+	db, err := GetConnection(repo.databaseDir)
 	if err != nil {
 		return errors.Wrap(err, "unable to open bolt db")
 	}
@@ -121,7 +124,7 @@ func (repo *serverRepository) RevokeServer(id string) error {
 
 func (repo *serverRepository) GetServer(id string) (*syshealth.Server, error) {
 
-	db, err := GetConnection()
+	db, err := GetConnection(repo.databaseDir)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to open bolt db")
 	}
