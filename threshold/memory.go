@@ -12,7 +12,7 @@ func (trigger *MemoryUsageTrigger) GetKey() key {
 func (trigger *MemoryUsageTrigger) Check(metrics syshealth.Data) syshealth.ThresholdLevel {
 
 	if rawUsed, ok := metrics["memory.used_percent"]; ok {
-		if used, ok := rawUsed.(float64); ok && used >= 0.8 {
+		if used, ok := rawUsed.(float64); ok && used >= 80.0 {
 			if raw, ok := metrics["memory.available"]; ok {
 				if available, ok := raw.(float64); ok {
 					if available <= 0.3 {
