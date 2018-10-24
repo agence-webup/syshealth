@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Syshealth UI</title>
-    <link rel="stylesheet" href="https://agence-webup.github.io/helium/css/style.css">
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/helium-vendors.css">
+    <link rel="stylesheet" href="css/helium-base.css">
     <style>
         table thead {
             text-align: center;
@@ -87,245 +87,255 @@
 <body>
 
     <header class="header">
-        <div class="header__logo">
-            <svg width="50" height="33" viewBox="0 0 50 33" xmlns="http://www.w3.org/2000/svg">
-                <g fill="none" fill-rule="evenodd">
-                    <path d="M24.425 24.132l-6.134 5.985c-.422.412-.996.644-1.594.644-.6 0-1.173-.23-1.596-.643L2.662 17.97c-.876-.857-.876-2.252 0-3.115L15.1 2.712c.882-.856 2.31-.856 3.19 0l12.44 12.14" stroke="#FFF" stroke-width="3.213"/>
-                    <path d="M25.285 8.7l6.133-5.986c.882-.857 2.31-.857 3.19 0l12.44 12.14c.878.857.878 2.25 0 3.115l-12.44 12.14c-.875.856-2.304.856-3.19 0L18.98 17.97" stroke="#FFF" stroke-width="3.213"/>
-                    <path fill="url(#a)" opacity=".3" d="M22.855 5.693l1.462 1.418.215-.21-1.463-1.417" transform="translate(2 2)"/>
-                    <path fill="url(#b)" opacity=".3" d="M21.177 21.92l1.454 1.43.225-.22-1.463-1.418" transform="translate(2 2)"/>
-                </g>
-            </svg>
-        </div>
-        <div class="header__infos">
-            <!-- <a href="#">Go to website</a>
-            <a href="#">Get some help</a>
-            <span>Richard | <a href="#">Logout</a></span> -->
+        <div class="container">
+            <div class="header__logo">
+                syshealth
+            </div>
+            <div class="header__infos">
+                <!-- <a href="#">Go to website</a>
+                <a href="#">Get some help</a>
+                <span>Richard | <a href="#">Logout</a></span> -->
+            </div>
         </div>
     </header>
 
-    <div class="layout sidemenu-wrapper show-nav" data-js="vue-root">
-        <nav class="navigation">
-            <a href="#" :class="{ 'is-active': route.startsWith('dashboard')}" @click="selectRoute('dashboard')"><i class="fa fa-dashboard icon"></i> Dashboard</a>
-            <a href="#" :class="{ 'is-active': route.startsWith('servers')}" @click="selectRoute('servers.list')"><i class="fa fa-server icon"></i> Servers</a>
-            <a href="#" :class="{ 'is-active': route.startsWith('users')}" @click="selectRoute('users.list')"><i class="fa fa-users icon"></i> Users</a>
+    <div data-js="vue-root">
+
+        <nav class="navigation-wrapper">
+            <div class="container">
+                <div class="navigation">
+                    <a href="#" :class="{ 'is-active': route.startsWith('dashboard')}" @click="selectRoute('dashboard')"><i data-feather="bar-chart"></i> Dashboard</a>
+                    <a href="#" :class="{ 'is-active': route.startsWith('servers')}" @click="selectRoute('servers.list')"><i data-feather="server"></i> Servers</a>
+                    <a href="#" :class="{ 'is-active': route.startsWith('users')}" @click="selectRoute('users.list')"><i data-feather="users"></i> Users</a>
+                </div>
+            </div>
         </nav>
 
-        <main class="content sidemenu-content">
+        <div class="container sidemenu-wrapper show-nav">
+            
+            <main class="content sidemenu-content">
 
-            <div class="sidemenu" :class="{ 'show-nav': ui.sidemenu.server }">
-                <button class="btn" @click.prevent.stop="closeSidemenu">Close</button>
+                <div v-if="route.startsWith('dashboard')">
+                    <header class="title-wrapper">
+                        <h1 class="title">Dashboard</h1>
+                    </header>
 
-                <server-info v-if="ui.sidemenu.server" :server="ui.sidemenu.server" inline-template>
-                    <div>
-                        <h3 class="txtcenter">{{server.name}} ({{server.ip}})</h3>
-                        <div v-if="loading" class="txtcenter mt5" style="color: #ddd">
-                            <i class="fa fa-cog fa-spin fa-3x fa-fw"></i>
-                            <span class="sr-only">Loading...</span>
-                        </div>
-                        <div class="w100">
-                            <canvas ref="cpuChart" style="width: 100%; height: 250px;"></canvas>
-                            <canvas ref="memoryChart" style="width: 100%; height: 250px;"></canvas>
-                        </div>
-                    </div>
-                </server-info>
-            </div>
-
-            <div v-if="route.startsWith('dashboard')">
-                <h1>Dashboard</h1>
-
-                <article class="box">
-                    <div class="box__content box__content--noPadding">
-                        <table class="txtcenter table__txtsmall">
-                            <thead>
-                                <tr>
-                                    <td class="w5"></td>
-                                    <td>Server</td>
-                                    <td>Processor</td>
-                                    <td>Memory</td>
-                                    <td>Disk</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="item in metrics" @click="showServerInfo(item.server)">
-                                    <td><span class="tag" :class="{ 'tag--green': item.data, 'tag--red': !item.data }"></span></td>
-                                    <td class="bold">
-                                        <v-popover offset="4" trigger="hover" popover-base-class="vtooltip popover">
-                                            <span class="tooltip-target">{{item.server.name}}</span>
-                                            <template slot="popover">
-                                            <div class="pl4 pr4">
-                                                    {{item.server.ip}}
-                                            </div>
-                                            </template>
-                                        </v-popover>
-                                    </td>
-                                    <td>
-                                        <v-popover offset="4" trigger="hover" v-if="item.data" popover-base-class="vtooltip popover">
-                                            <span class="tooltip-target">{{formatPercent(item.data['cpu.usage'])}}</span>
-                                            <template slot="popover">
-                                                <table class="table__noborder">
-                                                    <tr>
-                                                        <td class="txtright bold">Load 1</td>
-                                                        <td>{{item.data['cpu.load_1']}}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="txtright bold">Load 5</td>
-                                                        <td>{{item.data['cpu.load_5']}}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="txtright bold">Load 15</td>
-                                                        <td>{{item.data['cpu.load_15']}}</td>
-                                                    </tr>
-                                                </table>
-                                            </template>
-                                        </v-popover>
-                                    </td>
-                                    <td>
-                                        <v-popover offset="4" trigger="hover" v-if="item.data" popover-base-class="vtooltip popover">
-                                            <span class="tooltip-target">{{formatPercent(item.data['memory.used_percent'])}}</span>
-                                            <template slot="popover">
-                                                <table class="table__noborder">
-                                                    <tr>
-                                                        <td class="txtright bold">Available</td>
-                                                        <td>{{item.data['memory.available'].toFixed(2)}} GB</td>
-                                                    </tr>
-                                                </table>
-                                            </template>
-                                        </v-popover>
-                                    </td>
-                                    <td>
-                                        <v-popover offset="4" trigger="hover" v-if="item.data" popover-base-class="vtooltip popover">
-                                            <span class="tooltip-target">{{formatPercent(item.data['disk.usage'][item.server.default_partition]['percent'])}}</span>
-                                            <template slot="popover">
-                                                <table class="table__noborder">
-                                                    <tr v-for="(info, disk) in item.data['disk.usage']">
-                                                        <td class="txtright bold">{{disk}}</td>
-                                                        <td>{{info['free'].toFixed(0)}}GB / {{info['total'].toFixed(0)}}GB ({{formatPercent(info['percent'])}})</td>
-                                                    </tr>
-                                                </table>
-                                            </template>
-                                        </v-popover>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </article>
-            </div>
-
-            <div v-if="route.startsWith('servers')">
-                <h1>Servers</h1>
-
-                <template v-if="route.startsWith('servers.form.confirmation')">
                     <article class="box">
-                        <header class="box__header">
-                            Auth token for the new server:
-                        </header>
-                        <div class="box__content">
-                            <input class="jwt-token__value w70" type="text" :value="ui.servers.form.jwt" readonly @click="copyJwt"> (click on input to copy)
-                            <div class="alert alert--error">
-                                Warning! You must keep this token at secure place. It will not be stored and cannot be retrieved. You could only revoke this
-                                token after leaving this page.
-                            </div>
+                        <div class="box__content box__content--noPadding">
+                            <table class="txtcenter table__txtsmall">
+                                <thead>
+                                    <tr>
+                                        <td class="w5"></td>
+                                        <td>Server</td>
+                                        <td>Processor</td>
+                                        <td>Memory</td>
+                                        <td>Disk</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="item in metrics" @click="showServerInfo(item.server)">
+                                        <td><span class="tag" :class="{ 'tag--green': item.data, 'tag--red': !item.data }"></span></td>
+                                        <td class="bold">
+                                            <v-popover offset="4" trigger="hover" popover-base-class="vtooltip popover">
+                                                <span class="tooltip-target">{{item.server.name}}</span>
+                                                <template slot="popover">
+                                                <div class="pl4 pr4">
+                                                        {{item.server.ip}}
+                                                </div>
+                                                </template>
+                                            </v-popover>
+                                        </td>
+                                        <td>
+                                            <v-popover offset="4" trigger="hover" v-if="item.data" popover-base-class="vtooltip popover">
+                                                <span class="tooltip-target">{{formatPercent(item.data['cpu.usage'])}}</span>
+                                                <template slot="popover">
+                                                    <table class="table__noborder">
+                                                        <tr>
+                                                            <td class="txtright bold">Load 1</td>
+                                                            <td>{{item.data['cpu.load_1']}}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="txtright bold">Load 5</td>
+                                                            <td>{{item.data['cpu.load_5']}}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="txtright bold">Load 15</td>
+                                                            <td>{{item.data['cpu.load_15']}}</td>
+                                                        </tr>
+                                                    </table>
+                                                </template>
+                                            </v-popover>
+                                        </td>
+                                        <td>
+                                            <v-popover offset="4" trigger="hover" v-if="item.data" popover-base-class="vtooltip popover">
+                                                <span class="tooltip-target">{{formatPercent(item.data['memory.used_percent'])}}</span>
+                                                <template slot="popover">
+                                                    <table class="table__noborder">
+                                                        <tr>
+                                                            <td class="txtright bold">Available</td>
+                                                            <td>{{item.data['memory.available'].toFixed(2)}} GB</td>
+                                                        </tr>
+                                                    </table>
+                                                </template>
+                                            </v-popover>
+                                        </td>
+                                        <td>
+                                            <v-popover offset="4" trigger="hover" v-if="item.data" popover-base-class="vtooltip popover">
+                                                <span class="tooltip-target">{{formatPercent(item.data['disk.usage'][item.server.default_partition]['percent'])}}</span>
+                                                <template slot="popover">
+                                                    <table class="table__noborder">
+                                                        <tr v-for="(info, disk) in item.data['disk.usage']">
+                                                            <td class="txtright bold">{{disk}}</td>
+                                                            <td>{{info['free'].toFixed(0)}}GB / {{info['total'].toFixed(0)}}GB ({{formatPercent(info['percent'])}})</td>
+                                                        </tr>
+                                                    </table>
+                                                </template>
+                                            </v-popover>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </article>
-                </template>
+                </div>
 
-                <template v-if="route.startsWith('servers.form.create')">
-                    <div>
-                        <form action="" @submit.prevent.stop="registerSubmit">
-                            <div class="f-group">
-                                <label for="name">Server name <i class="f-required">*</i></label>
-                                <input type="text" id="name" v-model="ui.servers.form.name">
+                <div v-if="route.startsWith('servers')">
+                    <h1>Servers</h1>
+
+                    <template v-if="route.startsWith('servers.form.confirmation')">
+                        <article class="box">
+                            <header class="box__header">
+                                Auth token for the new server:
+                            </header>
+                            <div class="box__content">
+                                <input class="jwt-token__value w70" type="text" :value="ui.servers.form.jwt" readonly @click="copyJwt"> (click on input to copy)
+                                <div class="alert alert--error">
+                                    Warning! You must keep this token at secure place. It will not be stored and cannot be retrieved. You could only revoke this
+                                    token after leaving this page.
+                                </div>
                             </div>
+                        </article>
+                    </template>
 
-                            <div class="f-group">
-                                <label for="ip">IP <i class="f-required">*</i></label>
-                                <input type="text" id="ip" v-model="ui.servers.form.ip">
-                            </div>
+                    <template v-if="route.startsWith('servers.form.create')">
+                        <div>
+                            <form action="" @submit.prevent.stop="registerSubmit">
+                                <div class="f-group">
+                                    <label for="name">Server name <i class="f-required">*</i></label>
+                                    <input type="text" id="name" v-model="ui.servers.form.name">
+                                </div>
 
-                            <button type="submit">Submit</button>
-                        </form>
-                    </div>
-                </template>
+                                <div class="f-group">
+                                    <label for="ip">IP <i class="f-required">*</i></label>
+                                    <input type="text" id="ip" v-model="ui.servers.form.ip">
+                                </div>
 
-                <template v-if="route.startsWith('servers.list')">
-                    <div>
-                        <button class="btn btn--primary" @click="selectRoute('servers.form.create')">Register new server</button>
-
-                        <div class="mt2">
-                            <table>
-                                <tbody>
-                                    <tr v-for="server in servers">
-                                        <td>
-                                            {{ server.name }} ({{ server.ip }})
-                                        </td>
-                                        <td>
-                                            <a href="" @click.prevent.stop="revokeServer(server)">revoke</a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                <button class="btn btn--primary" type="submit">Submit</button>
+                            </form>
                         </div>
-                    </div>
-                </template>
-            </div>
+                    </template>
 
-            <div v-if="route.startsWith('users')">
-                <h1>Users</h1>
+                    <template v-if="route.startsWith('servers.list')">
+                        <div>
+                            <button class="btn btn--primary" @click="selectRoute('servers.form.create')">Register new server</button>
 
-                <template v-if="route.startsWith('users.create')">
-                    <div>
-                        <form action="" @submit.prevent.stop="createUser">
-                            <div class="f-group">
-                                <label for="username">Username <i class="f-required">*</i></label>
-                                <input type="text" id="username" v-model="ui.users.form.username">
+                            <div class="mt2">
+                                <table>
+                                    <tbody>
+                                        <tr v-for="server in servers">
+                                            <td>
+                                                {{ server.name }} ({{ server.ip }})
+                                            </td>
+                                            <td>
+                                                <a class="btn btn--danger" href="" @click.prevent.stop="revokeServer(server)">revoke</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
-
-                            <div class="f-group">
-                                <label for="password">Password <i class="f-required">*</i></label>
-                                <input type="password" id="password" v-model="ui.users.form.password">
-                            </div>
-
-                            <button type="submit">Submit</button>
-                        </form>
-                    </div>
-                </template>
-
-                <template v-if="route.startsWith('users.list')">
-                    <div>
-                        <button class="btn btn--primary" @click="selectRoute('users.create')">Create a new user</button>
-
-                        <div class="mt2">
-                            <table>
-                                <tbody>
-                                    <tr v-for="username in users">
-                                        <td>
-                                            {{ username }}
-                                        </td>
-                                        <td>
-                                            <a href="" @click.prevent.stop="deleteUser(username)">delete</a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
-                    </div>
-                </template>
-            </div>
+                    </template>
+                </div>
 
-        </main>
+                <div v-if="route.startsWith('users')">
+                    <h1>Users</h1>
+
+                    <template v-if="route.startsWith('users.create')">
+                        <div>
+                            <form action="" @submit.prevent.stop="createUser">
+                                <div class="f-group">
+                                    <label for="username">Username <i class="f-required">*</i></label>
+                                    <input type="text" id="username" v-model="ui.users.form.username">
+                                </div>
+
+                                <div class="f-group">
+                                    <label for="password">Password <i class="f-required">*</i></label>
+                                    <input type="password" id="password" v-model="ui.users.form.password">
+                                </div>
+
+                                <button class="btn btn--primary" type="submit">Submit</button>
+                            </form>
+                        </div>
+                    </template>
+
+                    <template v-if="route.startsWith('users.list')">
+                        <div>
+                            <button class="btn btn--primary" @click="selectRoute('users.create')">Create a new user</button>
+
+                            <div class="mt2">
+                                <table>
+                                    <tbody>
+                                        <tr v-for="username in users">
+                                            <td>
+                                                {{ username }}
+                                            </td>
+                                            <td>
+                                                <a class="btn btn--danger" href="" @click.prevent.stop="deleteUser(username)">delete</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+            </main>
+
+        </div>
+
+        <div class="sidemenu" :class="{ 'show-nav': ui.sidemenu.server }">
+            <button class="btn" @click.prevent.stop="closeSidemenu">Close</button>
+
+            <server-info v-if="ui.sidemenu.server" :server="ui.sidemenu.server" inline-template>
+                <div>
+                    <h3 class="txtcenter">{{server.name}} ({{server.ip}})</h3>
+                    <div v-if="loading" class="txtcenter mt5" style="color: #ddd">
+                        <i class="fa fa-cog fa-spin fa-3x fa-fw"></i>
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <div class="w100">
+                        <canvas ref="cpuChart" style="width: 100%; height: 250px;"></canvas>
+                        <canvas ref="memoryChart" style="width: 100%; height: 250px;"></canvas>
+                    </div>
+                </div>
+            </server-info>
+        </div>
+
     </div>
+
+    <script src="js/helium-vendors.js"></script>
+    <script src="js/helium-base.js"></script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.15/vue.min.js"></script>
     <script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
-    <script src="https://unpkg.com/v-tooltip@2.0.0-rc.31/dist/v-tooltip.min.js"></script>
+    <script src="https://unpkg.com/v-tooltip@2.0.0-rc.32/dist/v-tooltip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
     <script src="cookies.js"></script>
     
     <script>
-        var serverUrl = ''  // to set a custom server url
+        var serverUrl = 'http://localhost:1323'  // to set a custom server url
 
         var authToken = getCookie('auth_token')
         var headers = {
