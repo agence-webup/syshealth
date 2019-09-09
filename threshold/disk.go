@@ -11,9 +11,9 @@ func (trigger *DiskUsageTrigger) GetKey() key {
 
 func (trigger *DiskUsageTrigger) Check(metrics syshealth.Data) syshealth.ThresholdLevel {
 	if raw, ok := metrics["disk.usage"]; ok {
-		if partitions, ok := raw.(map[string]map[string]float64); ok {
-			if usageForDefaultPartition, ok := partitions["/"]; ok {
-				if free, ok := usageForDefaultPartition["free"]; ok {
+		if partitions, ok := raw.(map[string]interface{}); ok {
+			if usageForDefaultPartition, ok := partitions["/"].(map[string]interface{}); ok {
+				if free, ok := usageForDefaultPartition["free"].(float64); ok {
 					if free <= 1.0 {
 						return syshealth.Critical
 					}
